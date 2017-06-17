@@ -1,0 +1,52 @@
+#include "fis.h"
+#include "ui_fis.h"
+#include <iostream>
+#include <QtDebug>
+#include <qfiledialog.h>
+#include <QFile>
+
+
+using namespace std;
+
+FIS::FIS(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::FIS)
+{
+    ui->setupUi(this);
+}
+
+FIS::~FIS()
+{
+    delete ui;
+}
+
+void FIS::on_pushButton_clicked()
+{
+    string fileName = QFileDialog::getOpenFileName(this,tr("Open Image"),"",tr("Image Files (*.png *.jpg *.bpm *.jpeg)"));
+    qDebug() << fileName ;
+    // read an image
+    cv::Mat image = cv::imread(fileName , 1 );
+    //QString test = ":/resources/img/capture.PNG";
+    cv::Mat image = loadFromQrc(test);
+    // create image window named "My Image"
+    cv::namedWindow("My Image");
+    // show the image on window
+    cv::imshow("My Image", image);
+
+}
+
+cv::Mat FIS::loadFromQrc(QString qrc)
+{
+
+    QFile file(qrc);
+    cv::Mat m;
+    if(file.open(QIODevice::ReadOnly))
+    {
+        qint64 sz = file.size();
+        std::vector<uchar> buf(sz);
+        file.read((char*)buf.data(), sz);
+        m = cv::imdecode(buf,  cv::IMREAD_COLOR);
+    }
+
+    return m;
+}
