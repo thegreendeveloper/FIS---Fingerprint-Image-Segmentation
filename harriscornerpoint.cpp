@@ -28,18 +28,18 @@ HarrisCornerPoint::HarrisCornerPoint(cv::Mat& src, double thresh)
 
     /// Drawing a circle around corners
     for( int j = 0; j < dst_norm.rows ; j++ )
-       { for( int i = 0; i < dst_norm.cols; i++ )
+    { for( int i = 0; i < dst_norm.cols; i++ )
+        {
+            if( (int) dst_norm.at<float>(j,i) > thresh )
             {
-              if( (int) dst_norm.at<float>(j,i) > thresh )
-                {
-                 circle( dst_norm_scaled, cv::Point( i, j ), 5,  cv::Scalar(0), 2, 8, 0 );
-                 Utility::colorBlock(comparisonImg,i,j,5,255);
-                }
-              else{
-                  comparisonImg.row(j).col(i).data[0] = 0;
-              }
+                circle( dst_norm_scaled, cv::Point( i, j ), 5,  cv::Scalar(0), 2, 8, 0 );
+                Utility::colorBlock(comparisonImg,i,j,5,255);
             }
-       }
+            else{
+                comparisonImg.row(j).col(i).data[0] = 0;
+            }
+        }
+    }
 
     src_gray.copyTo(initSeg);
     comparisonImg.copyTo(postProcessing);

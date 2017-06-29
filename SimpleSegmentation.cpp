@@ -86,6 +86,7 @@ void SimpleSegmentation::Segmentation(cv::Mat& img){
 
     result.copyTo(comparisonImg);
     result.copyTo(postProcessing);
+
     //Apply segmentation
     int counter = 0;
     blockNo = 0;
@@ -160,7 +161,7 @@ bool SimpleSegmentation::makeForeground(cv::Mat result,int blockCol, int blockRo
         if(result.col(blockCol).row(blockRow-blockSize).data[0] != foregroundColor)
             counter++;
     }
-    if (counter > 3)
+    if (counter > 2)
         return true;
     return false;
 }

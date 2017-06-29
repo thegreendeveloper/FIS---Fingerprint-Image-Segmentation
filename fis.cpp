@@ -18,7 +18,7 @@ FIS::FIS(QWidget *parent) :
     ui(new Ui::FIS)
 {
     ui->setupUi(this);
-    ui->radioSeg2->setChecked(true);
+    ui->radioSeg1->setChecked(true);
     image = new QImage(NULL);
 
 }
@@ -59,8 +59,8 @@ void FIS::on_pushButton_2_clicked()
         simpleSeg.Segmentation(img);
         comparableImg = simpleSeg.comparisonImg;
 
-         _postP = convertMatToQImage(simpleSeg.postProcessing);
-         _initS = convertMatToQImage(simpleSeg.initSeg);
+        _postP = convertMatToQImage(simpleSeg.postProcessing);
+        _initS = convertMatToQImage(simpleSeg.initSeg);
         _comp = convertMatToQImage(comparableImg);
 
         postP = &_postP;
@@ -76,9 +76,9 @@ void FIS::on_pushButton_2_clicked()
 
         comparableImg = simpleSeg.comparisonImg;
 
-         _postP = convertMatToQImage(simpleSeg.postProcessing);
-         _initS = convertMatToQImage(simpleSeg.initSeg);
-         _comp = convertMatToQImage(comparableImg);
+        _postP = convertMatToQImage(simpleSeg.postProcessing);
+        _initS = convertMatToQImage(simpleSeg.initSeg);
+        _comp = convertMatToQImage(comparableImg);
 
         postP = &_postP;
         initSeg = &_initS;
@@ -90,9 +90,9 @@ void FIS::on_pushButton_2_clicked()
         HarrisCornerPoint harris(img,50);
         comparableImg = harris.comparisonImg;
 
-         _postP = convertMatToQImage(harris.postProcessing);
-         _initS = convertMatToQImage(harris.initSeg);
-         _comp = convertMatToQImage(comparableImg);
+        _postP = convertMatToQImage(harris.postProcessing);
+        _initS = convertMatToQImage(harris.initSeg);
+        _comp = convertMatToQImage(comparableImg);
 
         postP = &_postP;
         initSeg = &_initS;
@@ -156,21 +156,35 @@ void FIS::on_pushButton_5_clicked()
 
 void FIS::on_pushButton_6_clicked()
 {
-    double difference = 0;
     if(comparableImg.size != referenceImg.size){
         ui->label_7->setText("<font color='red'>Images are not same size!</font>");
         return;
     }else
         ui->label_7->setText("");
 
+    cv::Mat referenceImgg, bitwise;
+    cvtColor( referenceImg, referenceImgg, CV_BGR2GRAY );
+    bitwise_and(comparableImg, referenceImgg, bitwise);
+    double dice = 2*countNonZero(bitwise)/(double)(countNonZero(comparableImg) + countNonZero(referenceImgg));
+
+    double under = 0, over = 0;
     for(int i = 0; i < comparableImg.cols;i++){
         for(int h = 0; h < comparableImg.rows;h++){
-            if((referenceImg.col(i).row(h).data[0] = 255) && (comparableImg.col(i).row(h).data[0] != 255))
-                difference++;
+            if((referenceImg.col(i).row(h).data[0] == 255) && (comparableImg.col(i).row(h).data[0] != 255))
+                under++;
+            if((referenceImg.col(i).row(h).data[0] != 255) && (comparableImg.col(i).row(h).data[0] == 255))
+                over++;
         }
     }
-    difference = difference/(comparableImg.cols*comparableImg.rows) * 100;
-    ui->label_7->setText(QString::number( 100-difference, 'f', 2) + "%");
+
+    cv::Mat m;
+    cv::extractChannel(referenceImg, m, 0);
+    int nonZeros = countNonZero(m);
+
+    under = under/(double)(nonZeros) * 100;
+    over = over/(double)((referenceImg.cols*referenceImg.rows)-nonZeros) * 100;
+    ui->label_7->setText("Dice distance : "+QString::number( dice*100, 'f', 2) + "%" );
+    ui->label_9->setText("Over segmented area : "+QString::number(over, 'f', 2) + "%, under segmented area : " + QString::number(under, 'f', 2)+"%");
 }
 
 void FIS::clearViews(){
@@ -187,5 +201,9 @@ void FIS::clearViews(){
     ui->post->setScene(scene);
     scene->clear();
 
+    ui->comparison->setScene(scene);
+    scene->clear();
+
     ui->label_7->clear();
+    ui->label_9->clear();
 }
